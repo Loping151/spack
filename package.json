@@ -1,0 +1,13 @@
+{
+  "name": "spack",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "tauri": "tauri",
+    "check": "node --check ui/app.js && node scripts/check-locales.cjs",
+    "build": "tauri build --no-bundle"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

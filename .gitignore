@@ -1,0 +1,28 @@
+# Build outputs
+target/
+node_modules/
+src-tauri/gen/
+dist/
+*.exe
+*.msi
+*.zip
+*.log
+# Editors
+.vscode/
+.idea/
+*.swp
+# Archives and temporary archive artifacts
+*.spack
+*.spack.[0-9]*
+*.spk
+*.spk.*
+*.part
+*.payload
+# Media is never committed
+*.gif
+*.mov
+*.mp4
+*.mkv
+*.webm
+*.avi
+*.webp

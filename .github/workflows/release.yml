@@ -1,0 +1,95 @@
+name: Release
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path out | Out-Null
+          Copy-Item src-tauri/target/release/spack.exe out/spack-windows-x64.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: out/*
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npx tauri build --target universal-apple-darwin --bundles app,dmg
+      - run: |
+          for t in aarch64-apple-darwin x86_64-apple-darwin; do
+            cargo build --release --locked --manifest-path src-tauri/Cargo.toml --no-default-features --target $t --target-dir target-cli
+          done
+          mkdir -p out
+          lipo -create -output out/spack target-cli/aarch64-apple-darwin/release/spack target-cli/x86_64-apple-darwin/release/spack
+          tar -czf out/spack-cli-macos-universal.tar.gz -C out spack
+          rm out/spack
+          bundle=src-tauri/target/universal-apple-darwin/release/bundle
+          cp "$bundle"/dmg/*.dmg out/spack-macos-universal.dmg
+          ditto -c -k --keepParent "$bundle/macos/spack.app" out/spack-macos-universal.app.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: out/*
+  linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+      - run: npm ci
+      - run: npm run check
+      - run: npx tauri build --bundles appimage,deb
+      - run: |
+          cargo build --release --locked --manifest-path src-tauri/Cargo.toml --no-default-features --target-dir target-cli
+          mkdir -p out
+          bundle=src-tauri/target/release/bundle
+          cp "$bundle"/appimage/*.AppImage out/spack-linux-x86_64.AppImage
+          cp "$bundle"/deb/*.deb out/spack-linux-amd64.deb
+          tar -czf out/spack-cli-linux-x86_64.tar.gz -C target-cli/release spack
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: out/*
+  publish:
+    needs: [windows, macos, linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - run: cd dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          draft: true
+          files: dist/*

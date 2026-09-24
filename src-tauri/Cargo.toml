@@ -1,0 +1,36 @@
+[package]
+name = "spack"
+version = "0.1.0"
+edition = "2021"
+description = "Byte-exact archiver for batch media exports (GIF/video/images)"
+
+[dependencies]
+blake3 = "1"
+ppmd-rust = "1.5"
+
+tempfile = "3"
+ctrlc = "3"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+zstd = { version = "0.13", features = ["zstdmt"] }
+tauri = { version = "2", features = [], optional = true }
+tauri-plugin-dialog = { version = "2", optional = true }
+
+[features]
+default = ["gui"]
+gui = ["dep:tauri", "dep:tauri-plugin-dialog"]
+
+[target."cfg(windows)".dependencies]
+windows-sys = { version = "0.59", features = [
+  "Win32_System_Console",
+  "Win32_Storage_FileSystem",
+  "Win32_Security",
+  "Win32_Foundation",
+] }
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

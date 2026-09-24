@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' asset: http://asset.localhost data:; style-src 'self'; script-src 'self'; connect-src ipc: http://ipc.localhost">
+  <meta name="color-scheme" content="light dark">
+  <title>spack</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="m12 3 9 4.5v9L12 21l-9-4.5v-9L12 3Z"/><path d="m3 7.5 9 4.5 9-4.5M12 12v9M7.5 5.25l9 4.5"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10H3V7Z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M13 3H5v18h14V9l-6-6Z"/><path d="M13 3v6h6M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z"/><path d="m8 12 3 3 5-6"/></symbol>
+    <symbol id="i-language" viewBox="0 0 24 24"><path d="M3 5h12M9 3v2M5 5c1 5 4 8 8 10M13 5c-1 5-4 8-8 10M14 21l4-11 4 11M15.5 17h5"/></symbol>
+  </svg>
+  <header class="app-header">
+    <div class="brand"><img class="brand-icon" src="assets/icon.png" alt=""><div><h1>spack</h1></div></div>
+    <nav class="tabs" role="tablist" aria-label="Actions" data-i18n-aria-label="app.operations"><button id="tabPack" class="tab active" role="tab" aria-selected="true" aria-controls="panelPack" data-i18n="action.pack">Compress</button><button id="tabUnpack" class="tab" role="tab" aria-selected="false" aria-controls="panelUnpack" tabindex="-1" data-i18n="action.unpack">Extract</button></nav>
+    <div class="header-tools"><span class="header-note"><svg aria-hidden="true"><use href="#i-shield"/></svg><span id="headerNote">Byte-exact</span></span><label class="language-picker"><svg aria-hidden="true"><use href="#i-language"/></svg><select id="language" aria-label="Language" data-i18n-aria-label="app.language"></select></label></div>
+  </header>
+  <main>
+    <section id="panelPack" class="workspace active" role="tabpanel" aria-labelledby="tabPack">
+      <div class="card source-card" id="packDropTarget">
+        <div class="card-heading"><h2><span data-i18n="source.heading">Sources</span> <span class="count" id="folderCount">0</span></h2><div class="source-actions"><button class="button compact" id="addFiles"><svg aria-hidden="true"><use href="#i-file"/></svg><span data-i18n="action.addFiles">Add files</span></button><button class="button compact" id="addFolders"><svg aria-hidden="true"><use href="#i-folder"/></svg><span data-i18n="action.addFolders">Add folders</span></button></div></div>
+        <div id="folderList" class="folder-list" aria-label="Selected files and folders" data-i18n-aria-label="source.selection"></div>
+        <div class="source-stats" aria-live="polite"><div><span class="stat-label" data-i18n="source.size">Original size</span><strong id="sourceBytes">—</strong></div><div><span class="stat-label" data-i18n="source.files">Files</span><strong id="sourceFiles">—</strong></div></div>
+        <div class="type-counts" id="typeCounts"><span>GIF <b>—</b></span><span><span data-i18n="source.video">Video</span> <b>—</b></span><span>PNG <b>—</b></span><span>WEBP <b>—</b></span></div>
+      </div>
+      <div class="card settings-card">
+        <div class="card-heading"><h2 data-i18n="settings.pack">Compression</h2><span class="format-label">.spk</span></div>
+        <div class="setting-row"><label for="fileFilter" data-i18n="settings.filter">File types</label><select id="fileFilter"><option value="all" data-i18n="settings.all">All supported</option><option value="gif" data-i18n="settings.gif">GIF only</option><option value="video" data-i18n="settings.video">Videos only</option><option value="no-gif" data-i18n="settings.noGif">Exclude GIF</option><option value="no-video" data-i18n="settings.noVideo">Exclude videos</option></select></div>
+        <fieldset class="preset-field"><legend data-i18n="settings.level">Level</legend><div class="segmented"><label><input type="radio" name="preset" value="fast"><span data-i18n="settings.fast">Fast</span></label><label><input type="radio" name="preset" value="balanced"><span data-i18n="settings.balanced">Balanced</span></label><label><input type="radio" name="preset" value="max" checked><span data-i18n="settings.max">Maximum</span></label></div></fieldset>
+        <div class="setting-row split-row"><label for="splitMode" data-i18n="settings.split">Volumes</label><select id="splitMode"><option value="none" data-i18n="settings.splitNone">Single file</option><option value="count" data-i18n="settings.splitCount">By count</option><option value="size" data-i18n="settings.splitSize">By size</option></select><div class="split-value" id="splitValueWrap" hidden><input type="number" id="splitValue" min="2" step="1" value="2" aria-label="Number of volumes"><span id="splitUnit">parts</span></div></div>
+        <div class="output-setting"><div class="output-heading"><label for="outputPath" data-i18n="settings.output">Output</label><button class="text-button" id="resetOutput" hidden data-i18n="action.default">Default</button><button class="text-button" id="pickOutput" data-i18n="action.choose">Choose</button></div><div id="outputPath" class="path-field" title="First source’s folder">First source’s folder</div></div>
+      </div>
+    </section>
+    <section id="panelUnpack" class="workspace" role="tabpanel" aria-labelledby="tabUnpack" hidden>
+      <div class="card source-card" id="unpackDropTarget">
+        <div class="card-heading"><h2 data-i18n="archive.heading">Archive</h2><button class="button compact" id="pickArchive"><svg aria-hidden="true"><use href="#i-plus"/></svg><span data-i18n="action.chooseFile">Choose file</span></button></div>
+        <div class="archive-selection" id="archiveSelection"><svg class="empty-icon"><use href="#i-box"/></svg><strong data-i18n="archive.emptyTitle">Select or drop a .spk file or volume</strong><span data-i18n="archive.emptyNote">Keep all volumes in the same folder</span></div>
+        <div class="source-stats" aria-live="polite"><div><span class="stat-label" data-i18n="source.size">Original size</span><strong id="archiveBytes">—</strong></div><div><span class="stat-label" data-i18n="source.files">Files</span><strong id="archiveFiles">—</strong></div></div>
+        <div class="archive-meta"><span data-i18n="archive.parts">Volumes</span><b id="archiveParts">—</b></div>
+      </div>
+      <div class="card settings-card unpack-settings">
+        <div class="card-heading"><h2 data-i18n="archive.unpack">Extraction</h2><span class="format-label">BLAKE3</span></div>
+        <div class="output-setting"><div class="output-heading"><label for="targetPath" data-i18n="settings.output">Output</label><button class="text-button" id="resetTarget" hidden data-i18n="action.default">Default</button><button class="text-button" id="pickTarget" data-i18n="action.choose">Choose</button></div><div id="targetPath" class="path-field" title="Archive’s folder">Archive’s folder</div></div>
+        <dl class="unpack-details"><div><dt data-i18n="archive.target">Target folder</dt><dd id="targetName">—</dd></div><div><dt data-i18n="archive.integrity">Verification</dt><dd data-i18n="archive.hash">BLAKE3 per file</dd></div></dl>
+        <div class="integrity-note"><svg aria-hidden="true"><use href="#i-shield"/></svg><span data-i18n="archive.integrityNote">Files are verified after extraction.</span></div>
+      </div>
+    </section>
+    <section class="card job-card" id="jobCard" aria-label="Task progress" data-i18n-aria-label="job.progress">
+      <div class="job-heading"><div class="job-title"><span class="status-dot" id="statusDot"></span><h2 id="jobTitle" aria-live="polite">Ready</h2><span class="progress-percent" id="progressPercent"></span></div><div class="job-actions"><button class="button" id="cancelJob" hidden>Cancel</button><button class="button primary" id="startJob" disabled><span id="startLabel">Compress</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></button></div></div>
+      <div class="progress-track" id="progressTrack" role="progressbar" aria-label="Current phase progress" data-i18n-aria-label="job.phaseProgress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progressFill"></div></div>
+      <div class="job-summary"><span id="jobDetail">Select files or folders</span><button class="text-button copy-result" id="copyResult" hidden><svg aria-hidden="true"><use href="#i-copy"/></svg><span data-i18n="action.copyPath">Copy path</span></button></div>
+      <div class="log-heading"><span data-i18n="job.log">Activity</span><button class="text-button" id="copyLog" disabled data-i18n="action.copyLog">Copy log</button></div>
+      <ol class="log-list" id="logList" aria-label="Activity" data-i18n-aria-label="job.log"><li class="log-empty" data-i18n="job.noLog">No activity</li></ol>
+    </section>
+  </main>
+  <footer><span id="statusLine">Ready</span><span class="footer-formats" data-i18n="source.formats">GIF · VIDEO · PNG · WEBP</span></footer>
+  <script src="locales/en.js"></script>
+  <script src="locales/zh-CN.js"></script>
+  <script src="locales/registry.js"></script>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
